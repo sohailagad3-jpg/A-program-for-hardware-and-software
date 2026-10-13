@@ -1,0 +1,115 @@
+import tkinter as tk
+from tkinter import messagebox
+
+# بنك الأسئلة المطور من واقع صفحات المنهج اللي بعتيها
+DATA_BANK = [
+    {
+        "question": "ما هي الميزة الأساسية لتقنية SATA مقارنة بتقنية IDE في نقل البيانات؟",
+        "options": ["تنقل البيانات بشكل متوازي", "تنقل البيانات بشكل متسلسلي وتوفر سرعة أعلى", "تحتاج أسلاك عريضة تعيق الهواء", "تستخدم كابل Molex فقط"],
+        "answer": "تنقل البيانات بشكل متسلسلي وتوفر سرعة أعلى",
+        "tip": "تقنية SATA تنقل البيانات بشكل متسلسلي (Serial) مما يزيد السرعة ويسمح بكابلات رفيعة لا تعيق تهوية الكيسة."
+    },
+    {
+        "question": "أي من الأقراص التالية يعتمد على الرقاقات الإلكترونية (Flash) ولا يحتوي على أجزاء ميكانيكية متحركة؟",
+        "options": ["القرص الصلب (HDD)", "القرص المرن (Floppy)", "الأقراص الحالة الصلبة (SSD)", "القرص المدمج (CD-ROM)"],
+        "answer": "الأقراص الحالة الصلبة (SSD)",
+        "tip": "أقراص SSD تتميز بعدم وجود أجزاء متحركة وتعتمد على رقاقات الفلاش، مما يجعلها أسرع وأقل استهلاكاً للطاقة وضوضاءً."
+    },
+    {
+        "question": "يتكون محرك الأقراص المدمجة من ثلاثة أجزاء رئيسية، ما هي المنظومة المسؤولة عن تتبع المسار المطلوب وقراءة البيانات؟",
+        "options": ["موتور التدوير (Drive motor)", "منظومة الليزر والعدسات (Laser and lens system)", "منظومة التتبع (Tracking mechanism)", "الدائرة الإلكترونية"],
+        "answer": "منظومة التتبع (Tracking mechanism)",
+        "tip": "منظومة التتبع وظيفتها تحريك منظومة الليزر بدقة لتتبع مسار البيانات المطلوب على الأسطوانة."
+    },
+    {
+        "question": "ما هي بطاقة التوسعة (الكارت) التي تحتوي على منافذ (Line In, Microphone, Line Out)؟",
+        "options": ["بطاقة الشاشة (VGA)", "بطاقة الصوت (Sound Card)", "بطاقة الشبكة (LAN)", "اللوحة الأم"],
+        "answer": "بطاقة الصوت (Sound Card)",
+        "tip": "بطاقة الصوت هي المسؤولة عن معالجة وإدخال وإخراج الصوت وتوفر منافذ لتوصيل الميكروفون والسماعات."
+    },
+    {
+        "question": "تعتبر الفأرة (Mouse) من أهم وحدات الإدخال، والمنفذ الأكثر استخداماً لها في وقتنا الحاضر هو منفذ:",
+        "options": ["PS/2", "Serial Port", "USB", "LPT"],
+        "answer": "USB",
+        "tip": "على الرغم من وجود منافذ قديمة مثل PS/2، إلا أن منفذ USB هو المنفذ الأكثر انتشاراً واستخداماً للفأرة ولوحة المفاتيح حالياً."
+    }
+]
+
+class EducationalApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("مستشار الحاسب الآلي الذكي - الصف الأول الثانوي")
+        self.root.geometry("650x500")
+        self.root.configure(bg="#f4f6f9")
+        
+        self.score = 0
+        self.current_index = 0
+        
+        # العنوان العلوي
+        self.title_label = tk.Label(root, text="💻 برنامج التحدي والمذاكرة الذكية لأولى ثانوي 💻", 
+                                    font=("Arial", 14, "bold"), bg="#2c3e50", fg="white", pady=12)
+        self.title_label.pack(fill=tk.X)
+        
+        # النقاط والتقدم
+        self.score_label = tk.Label(root, text=f"🏆 النقاط: {self.score}", font=("Arial", 12, "bold"), bg="#f4f6f9", fg="#27ae60")
+        self.score_label.pack(anchor="ne", padx=20, pady=10)
+        
+        # نص السؤال
+        self.question_label = tk.Label(root, text="", font=("Arial", 13, "bold"), bg="#f4f6f9", fg="#34495e", wraplength=550, justify="right")
+        self.question_label.pack(pady=20)
+        
+        # أزرار الإجابات الاختيارية
+        self.options_buttons = []
+        for i in range(4):
+            btn = tk.Button(root, text="", font=("Arial", 11), bg="white", fg="#2c3e50", 
+                            activebackground="#3498db", activeforeground="white", width=50, height=2,
+                            command=lambda idx=i: self.check_answer(idx))
+            btn.pack(pady=6)
+            self.options_buttons.append(btn)
+            
+        # زر التلميح والمراجعة
+        self.tip_button = tk.Button(root, text="💡 غششني معلومة من الـ PDF", font=("Arial", 10, "bold"), 
+                                    bg="#e67e22", fg="white", padx=10, pady=5, command=self.show_tip)
+        self.tip_button.pack(pady=25)
+        
+        self.load_question()
+
+    def load_question(self):
+        """تحميل السؤال الحالي وخياراته"""
+        if self.current_index < len(DATA_BANK):
+            current_q = DATA_BANK[self.current_index]
+            self.question_label.config(text=f"السؤال {self.current_index + 1}: {current_q['question']}")
+            
+            # تحديث نصوص الأزرار بالخيارات
+            for i, option in enumerate(current_q["options"]):
+                self.options_buttons[i].config(text=option, state=tk.NORMAL, bg="white")
+        else:
+            # رسالة نهاية الاختبار
+            messagebox.showinfo("🎉 مبروك يا بطلة!", f"لقد أكملتِ التحدي بنجاح!\nمجموع نقاطك هو: {self.score} من {len(DATA_BANK)}")
+            self.root.destroy()
+
+    def check_answer(self, selected_idx):
+        """التحقق من صحة الإجابة المتناسبة مع الزر المضغوط"""
+        current_q = DATA_BANK[self.current_index]
+        selected_text = self.options_buttons[selected_idx].cget("text")
+        
+        if selected_text == current_q["answer"]:
+            self.score += 1
+            self.score_label.config(text=f"🏆 النقاط: {self.score}")
+            messagebox.showinfo("إجابة صحيحة 🌟", "رائع! إجابتك صحيحة، استمر في التقدم.")
+        else:
+            messagebox.showerror("إجابة خاطئة ❌", f"للأسف الإجابة غير صحيحة!\n\n💡 مراجعة من الـ PDF:\n{current_q['tip']}")
+            
+        self.current_index += 1
+        self.load_question()
+
+    def show_tip(self):
+        """عرض تلميح مستخرج مباشرة من شرح الكتاب"""
+        current_q = DATA_BANK[self.current_index]
+        messagebox.showinfo("معلومة سريعة من المنهج", current_q["tip"])
+
+# تشغيل التطبيق
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = EducationalApp(root)
+    root.mainloop()
